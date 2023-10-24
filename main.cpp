@@ -1,8 +1,26 @@
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
+#include <math.h>
 
 using namespace std;
+
+enum ActivationFunction { Linear, ReLU, Sigmoid };
+string GetActivationFunctionName(ActivationFunction a) {
+    switch (a) {
+    case ActivationFunction::Linear:
+        return "Linear";
+        break;
+    case ActivationFunction::ReLU:
+        return "ReLU";
+        break;
+    case ActivationFunction::Sigmoid:
+        return "Sigmoid";
+        break;
+    default:
+        return "";
+    }
+}
 
 template <class T>
 class NeuralLines1D {
@@ -16,6 +34,7 @@ public:
     void SetLayerByValue(T* source);
     void GetLayerByValue(T* target);
     void Print();
+    void Activation(ActivationFunction a);
 };
 
 template <class T>
@@ -28,6 +47,61 @@ public:
     void Print();
     void NeuralMultiplication(T* layer1, T* layer2);
 };
+
+class NeuralNetwork {
+private:
+    int neural_len;
+    WeightsFF<float>* weis;
+    NeuralLines1D<float>* neurons;
+    ActivationFunction activ;
+public:
+    void Create(int* neurons, int length);
+    void Forward(float* input_neuron_layer);
+    void PrintNeuralLayers();
+    void PrintWeights();
+    void SetActivationFunction(ActivationFunction activation);
+};
+
+void NeuralNetwork::Create(int* neuron_array, int length) {
+    this->neural_len = length;
+    this->weis = new WeightsFF<float>[this->neural_len - 1];
+    this->neurons = new NeuralLines1D<float>[this->neural_len];
+
+    srand((unsigned)time(NULL));
+
+    for (int i = 0; i < this->neural_len - 1; ++i) {
+        weis[i].Create(neuron_array[i], neuron_array[i + 1]);
+        neurons[i].Create(neuron_array[i]);
+    }
+    neurons[this->neural_len - 1].Create(neuron_array[this->neural_len - 1]);
+}
+
+void NeuralNetwork::Forward(float* input_neuron_layer) {
+    this->neurons[0].SetLayerByValue(input_neuron_layer);
+    for (int i = 0; i < this->neural_len - 1; ++i) {
+        this->weis[i].NeuralMultiplication(this->neurons[i].GetLayerByRef(), this->neurons[i + 1].GetLayerByRef());
+        if (i != this->neural_len - 2)
+            this->neurons[i + 1].Activation(this->activ);
+    }
+}
+
+void NeuralNetwork::PrintNeuralLayers() {
+    for (int i = 0; i < this->neural_len; ++i) {
+        cout << "Neural Layer [" << i + 1 << "]:\n";
+        this->neurons[i].Print();
+    }
+}
+
+void NeuralNetwork::PrintWeights() {
+    for (int i = 0; i < this->neural_len - 1; ++i) {
+        cout << "Weight [" << i + 1 << "]:\n";
+        this->weis[i].Print();
+    }
+}
+
+void NeuralNetwork::SetActivationFunction(ActivationFunction activation) {
+    this->activ = activation;
+}
 
 template <class T>
 void NeuralLines1D<T>::Create(int length) {
@@ -69,6 +143,22 @@ void NeuralLines1D<T>::Print()
     cout << endl << endl;
 }
 
+template<class T>
+void NeuralLines1D<T>::Activation(ActivationFunction a) {
+    switch (a) {
+    case ActivationFunction::ReLU:
+        for (int i = 0; i < this->len; ++i) {
+            if (this->layer[i] < 0)
+                this->layer[i] = 0;
+        }
+        break;
+    case ActivationFunction::Sigmoid:
+        for (int i = 0; i < this->len; ++i)
+            this->layer[i] = 1 / (1 + exp(-this->layer[i]));
+        break;
+    }
+}
+
 template <class T>
 void WeightsFF<T>::Create(int input, int output) {
     this->width = input + 1;
@@ -105,40 +195,19 @@ void WeightsFF<T>::NeuralMultiplication(T* layer1, T* layer2) {
 
 int main()
 {
-    int len = 3;
-    WeightsFF<float>* weis = new WeightsFF<float>[len];
-    NeuralLines1D<float>* neurons = new NeuralLines1D<float>[len + 1];
+    cout << "TEST\n";
+    NeuralNetwork nn;
+    int neuralLayer[] = { 2, 5, 3, 2 };
+
+    nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
+    nn.SetActivationFunction(ActivationFunction::Sigmoid);
 
     float inputs[] = { 1.5f, 0.9f };
+    nn.Forward(inputs);
 
-    srand((unsigned)time(NULL));
-    weis[0].Create(2, 3);
-    weis[1].Create(3, 5);
-    weis[2].Create(5, 2);
-    weis[0].Print();
-    weis[1].Print();
-    weis[2].Print();
-
-    neurons[0].Create(2);
-    neurons[1].Create(3);
-    neurons[2].Create(5);
-    neurons[3].Create(2);
-    neurons[0].Print();
-    neurons[1].Print();
-    neurons[2].Print();
-    neurons[3].Print();
-
-    neurons[0].SetLayerByValue(inputs);
-    for(int i = 0; i < len; ++i){        
-        weis[i].NeuralMultiplication(neurons[i].GetLayerByRef(), neurons[i + 1].GetLayerByRef());
-    }
-
-    neurons[0].Print();
-    neurons[1].Print();
-    neurons[2].Print();
-    neurons[3].Print();
+    nn.PrintNeuralLayers();
+    nn.PrintWeights();
 
     system("pause");
-
     return 0;
 }
