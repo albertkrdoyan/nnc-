@@ -2,8 +2,12 @@
 #include <cstdlib>
 #include <time.h>
 #include <math.h>
+#include <limits>
+#include <iomanip>
 
 using namespace std;
+
+#define EPSILION numeric_limits<float>::epsilon()
 
 enum ActivationFunction { Linear, ReLU, Sigmoid };
 string GetActivationFunctionName(ActivationFunction a) {
@@ -156,6 +160,8 @@ void NeuralLines1D<T>::Activation(ActivationFunction a) {
         for (int i = 0; i < this->len; ++i)
             this->layer[i] = 1 / (1 + exp(-this->layer[i]));
         break;
+    case ActivationFunction::Linear:
+        break;
     }
 }
 
@@ -193,14 +199,37 @@ void WeightsFF<T>::NeuralMultiplication(T* layer1, T* layer2) {
     }
 }
 
+template <class T>
+void SoftMax(T* arr, int len) {
+    int i;
+    T m, sum, constant;
+
+    m = -INFINITY;
+    for (i = 0; i < len; ++i) {
+        if (m < arr[i]) {
+            m = arr[i];
+        }
+    }
+
+    sum = 0.0f;
+    for (i = 0; i < len; ++i) {
+        sum += exp(arr[i] - m);
+    }
+
+    constant = m + log(sum);
+    for (i = 0; i < len; ++i) {
+        arr[i] = exp(arr[i] - constant);
+    }
+}
+
+
 int main()
 {
-    cout << "TEST\n";
     NeuralNetwork nn;
     int neuralLayer[] = { 2, 5, 3, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
-    nn.SetActivationFunction(ActivationFunction::Sigmoid);
+    nn.SetActivationFunction(Sigmoid);
 
     float inputs[] = { 1.5f, 0.9f };
     nn.Forward(inputs);
