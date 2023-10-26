@@ -3,26 +3,59 @@
 #include <time.h>
 #include <math.h>
 #include <limits>
-#include <iomanip>
 
 using namespace std;
 
-#define EPSILION numeric_limits<float>::epsilon()
-
-enum ActivationFunction { Linear, ReLU, Sigmoid };
+enum ActivationFunction { Linear, ReLU, Sigmoid, SoftMaX };
 string GetActivationFunctionName(ActivationFunction a) {
     switch (a) {
-    case ActivationFunction::Linear:
+    case Linear:
         return "Linear";
-        break;
-    case ActivationFunction::ReLU:
+    case ReLU:
         return "ReLU";
-        break;
-    case ActivationFunction::Sigmoid:
+    case Sigmoid:
         return "Sigmoid";
-        break;
+    case SoftMaX:
+        return "SoftMax";
     default:
         return "";
+    }
+}
+
+enum LossFunction { CrossEntropy, SquareError, LogCosh };
+string GetLossFunctionName(LossFunction lf) {
+    switch (lf) {
+    case CrossEntropy:
+        return "Cross Entropy";
+    case SquareError:
+        return "Square Error";
+    case LogCosh:
+        return "Log Cosh";
+    default:
+        return "";
+    }
+}
+
+template <class T>
+void SoftMax(T* arr, size_t len) {
+    int i;
+    T m, sum, constant;
+
+    m = -INFINITY;
+    for (i = 0; i < len; ++i) {
+        if (m < arr[i]) {
+            m = arr[i];
+        }
+    }
+
+    sum = 0.0f;
+    for (i = 0; i < len; ++i) {
+        sum += exp(arr[i] - m);
+    }
+
+    constant = m + log(sum);
+    for (i = 0; i < len; ++i) {
+        arr[i] = exp(arr[i] - constant);
     }
 }
 
@@ -39,6 +72,19 @@ public:
     void GetLayerByValue(T* target);
     void Print();
     void Activation(ActivationFunction a);
+    size_t GetLength() {
+        return (size_t)this->len;
+    }
+    T GetError(LossFunction lf, T* org_output) {
+        float err = 0;
+        if (lf == SquareError) {
+            for (int i = 0; i < this->len; ++i)
+                err += pow(org_output[i] - this->layer[i], 2);
+            err /= this->len;
+        }
+
+        return err;
+    }
 };
 
 template <class T>
@@ -57,13 +103,18 @@ private:
     int neural_len;
     WeightsFF<float>* weis;
     NeuralLines1D<float>* neurons;
-    ActivationFunction activ;
+    ActivationFunction activ1, activ2;
+    LossFunction lf;
 public:
     void Create(int* neurons, int length);
     void Forward(float* input_neuron_layer);
     void PrintNeuralLayers();
     void PrintWeights();
-    void SetActivationFunction(ActivationFunction activation);
+    void SetActivationFunction(ActivationFunction activation1, ActivationFunction activation2);
+    void SetLossFunction(LossFunction lf);
+    float GetLoss(float* org_output) {
+        return this->neurons[neural_len - 1].GetError(lf, org_output);
+    }
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
@@ -82,11 +133,15 @@ void NeuralNetwork::Create(int* neuron_array, int length) {
 
 void NeuralNetwork::Forward(float* input_neuron_layer) {
     this->neurons[0].SetLayerByValue(input_neuron_layer);
-    for (int i = 0; i < this->neural_len - 1; ++i) {
+    int i;
+    for (i = 0; i < this->neural_len - 2; ++i) {
         this->weis[i].NeuralMultiplication(this->neurons[i].GetLayerByRef(), this->neurons[i + 1].GetLayerByRef());
-        if (i != this->neural_len - 2)
-            this->neurons[i + 1].Activation(this->activ);
+        this->neurons[i + 1].Activation(this->activ1);
     }
+    this->weis[i].NeuralMultiplication(this->neurons[i].GetLayerByRef(), this->neurons[i + 1].GetLayerByRef());
+    ++i;
+    if (this->activ2 == SoftMaX)
+        SoftMax<float>(this->neurons[i].GetLayerByRef(), (size_t)this->neurons[i].GetLength());
 }
 
 void NeuralNetwork::PrintNeuralLayers() {
@@ -103,8 +158,13 @@ void NeuralNetwork::PrintWeights() {
     }
 }
 
-void NeuralNetwork::SetActivationFunction(ActivationFunction activation) {
-    this->activ = activation;
+void NeuralNetwork::SetActivationFunction(ActivationFunction activation1, ActivationFunction activation2) {
+    this->activ1 = activation1;
+    this->activ2 = activation2;
+}
+
+void NeuralNetwork::SetLossFunction(LossFunction lf) {
+    this->lf = lf;
 }
 
 template <class T>
@@ -199,43 +259,22 @@ void WeightsFF<T>::NeuralMultiplication(T* layer1, T* layer2) {
     }
 }
 
-template <class T>
-void SoftMax(T* arr, int len) {
-    int i;
-    T m, sum, constant;
-
-    m = -INFINITY;
-    for (i = 0; i < len; ++i) {
-        if (m < arr[i]) {
-            m = arr[i];
-        }
-    }
-
-    sum = 0.0f;
-    for (i = 0; i < len; ++i) {
-        sum += exp(arr[i] - m);
-    }
-
-    constant = m + log(sum);
-    for (i = 0; i < len; ++i) {
-        arr[i] = exp(arr[i] - constant);
-    }
-}
-
-
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 2, 5, 3, 2 };
+    int neuralLayer[] = { 2, 4, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
-    nn.SetActivationFunction(Sigmoid);
+    nn.SetActivationFunction(Sigmoid, SoftMaX);
+    nn.SetLossFunction(SquareError);
 
     float inputs[] = { 1.5f, 0.9f };
+    float output[] = { 1, 0 };
     nn.Forward(inputs);
+    cout << nn.GetLoss(output) << endl;
 
     nn.PrintNeuralLayers();
-    nn.PrintWeights();
+//    nn.PrintWeights();
 
     system("pause");
     return 0;
