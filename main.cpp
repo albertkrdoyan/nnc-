@@ -313,6 +313,6 @@ int main()
 //    nn.PrintNeuralLayers();
 //    nn.PrintWeights();
 
-    system("pause");
+//    system("pause");
     return 0;
 }
