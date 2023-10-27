@@ -22,15 +22,13 @@ string GetActivationFunctionName(ActivationFunction a) {
     }
 }
 
-enum LossFunction { CrossEntropy, SquareError, LogCosh };
+enum LossFunction { CrossEntropy, SquareError };
 string GetLossFunctionName(LossFunction lf) {
     switch (lf) {
     case CrossEntropy:
         return "Cross Entropy";
     case SquareError:
         return "Square Error";
-    case LogCosh:
-        return "Log Cosh";
     default:
         return "";
     }
@@ -82,10 +80,6 @@ public:
                 err += powf(org_output[i] - this->layer[i], 2);
             err /= this->len;
         }
-        else if (lf == LogCosh) {
-            for (int i = 0; i < this->len; ++i)
-                err += log(cosh(org_output[i] - this->layer[i]));
-        }
         else if (lf == CrossEntropy) {
             for (int i = 0; i < this->len; ++i)
                 err += org_output[i] * log(this->layer[i]);
@@ -123,6 +117,7 @@ public:
     float GetLoss(float* org_output) {
         return this->neurons[neural_len - 1].GetError(lf, org_output);
     }
+    void BackPropagation(float* org_output);
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
@@ -173,6 +168,35 @@ void NeuralNetwork::SetActivationFunction(ActivationFunction activation1, Activa
 
 void NeuralNetwork::SetLossFunction(LossFunction lf) {
     this->lf = lf;
+}
+
+void NeuralNetwork::BackPropagation(float* org_output)
+{
+    int lli = this->neural_len - 1; // last layer index
+    int llnc = this->neurons[lli].GetLength(); // last later neurons count
+
+    float* lln = this->neurons[lli].GetLayerByRef();
+
+    if (lf == CrossEntropy) {
+        if (activ2 == SoftMaX) {
+            for (int i = 0; i < llnc; ++i)
+                lln[i] = lln[i] - org_output[i];
+        }
+        else {
+            for (int i = 0; i < llnc; ++i)
+                lln[i] = -(org_output[i] / lln[i]);
+        }
+    }
+    else if (lf == SquareError) {
+        for (int i = 0; i < llnc; ++i)
+            lln[i] = 2 * (lln[i] - org_output[i]);
+    }
+
+    if (activ2 == Sigmoid) {
+        for (int i = 0; i < llnc; ++i)
+            break;
+    }
+    //???? xarn e
 }
 
 template <class T>
@@ -281,6 +305,10 @@ int main()
     float inputs[] = { 1.5f, 0.9f };
     float output[] = { 1, 0 };
     nn.Forward(inputs);
+    cout << "Loss: " << nn.GetLoss(output) << endl;
+    nn.PrintNeuralLayers();
+    nn.BackPropagation(output);
+    nn.PrintNeuralLayers();
 
 //    nn.PrintNeuralLayers();
 //    nn.PrintWeights();
