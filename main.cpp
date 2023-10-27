@@ -38,7 +38,7 @@ string GetLossFunctionName(LossFunction lf) {
 
 template <class T>
 void SoftMax(T* arr, size_t len) {
-    int i;
+    size_t i;
     T m, sum, constant;
 
     m = -INFINITY;
@@ -79,10 +79,18 @@ public:
         float err = 0;
         if (lf == SquareError) {
             for (int i = 0; i < this->len; ++i)
-                err += pow(org_output[i] - this->layer[i], 2);
+                err += powf(org_output[i] - this->layer[i], 2);
             err /= this->len;
         }
-
+        else if (lf == LogCosh) {
+            for (int i = 0; i < this->len; ++i)
+                err += log(cosh(org_output[i] - this->layer[i]));
+        }
+        else if (lf == CrossEntropy) {
+            for (int i = 0; i < this->len; ++i)
+                err += org_output[i] * log(this->layer[i]);
+            err = 0 - err;
+        }
         return err;
     }
 };
@@ -222,6 +230,8 @@ void NeuralLines1D<T>::Activation(ActivationFunction a) {
         break;
     case ActivationFunction::Linear:
         break;
+    case SoftMaX:
+        break;
     }
 }
 
@@ -262,18 +272,17 @@ void WeightsFF<T>::NeuralMultiplication(T* layer1, T* layer2) {
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 2, 4, 2 };
+    int neuralLayer[] = { 2, 3, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
     nn.SetActivationFunction(Sigmoid, SoftMaX);
-    nn.SetLossFunction(SquareError);
+    nn.SetLossFunction(CrossEntropy);
 
     float inputs[] = { 1.5f, 0.9f };
     float output[] = { 1, 0 };
     nn.Forward(inputs);
-    cout << nn.GetLoss(output) << endl;
 
-    nn.PrintNeuralLayers();
+//    nn.PrintNeuralLayers();
 //    nn.PrintWeights();
 
     system("pause");
