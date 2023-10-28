@@ -172,31 +172,47 @@ void NeuralNetwork::SetLossFunction(LossFunction lf) {
 
 void NeuralNetwork::BackPropagation(float* org_output)
 {
-    int lli = this->neural_len - 1; // last layer index
-    int llnc = this->neurons[lli].GetLength(); // last later neurons count
+    size_t lli = this->neural_len - 1; // last layer index
+    size_t llnc = this->neurons[lli].GetLength(); // last later neurons count
+    size_t i;
 
     float* lln = this->neurons[lli].GetLayerByRef();
+    float* llncopy = new float[llnc];
+    this->neurons[lli].GetLayerByValue(llncopy);
 
     if (lf == CrossEntropy) {
         if (activ2 == SoftMaX) {
-            for (int i = 0; i < llnc; ++i)
+            for (i = 0; i < llnc; ++i)
                 lln[i] = lln[i] - org_output[i];
         }
         else {
-            for (int i = 0; i < llnc; ++i)
-                lln[i] = -(org_output[i] / lln[i]);
+            for (i = 0; i < llnc; ++i)
+                llncopy[i] = -(org_output[i] / lln[i]);
         }
     }
     else if (lf == SquareError) {
-        for (int i = 0; i < llnc; ++i)
-            lln[i] = 2 * (lln[i] - org_output[i]);
+        for (i = 0; i < llnc; ++i)
+            llncopy[i] = 2 * (lln[i] - org_output[i]);
     }
 
+    cout << "\n\n";
+    for (i = 0; i < llnc; ++i)
+        cout << llncopy[i] << ' ';
+    cout << "\n\n";
+
     if (activ2 == Sigmoid) {
-        for (int i = 0; i < llnc; ++i)
-            break;
+        for (i = 0; i < llnc; ++i)
+            lln[i] = llncopy[i] * lln[i] * (1 - lln[i]);
     }
-    //???? xarn e
+    else if (activ2 == ReLU) {
+        for (i = 0; i < llnc; ++i) {
+            if (lln[i] != 0)
+                lln[i] = llncopy[i];
+        }
+    }
+
+    // lln = dL/dz[last layer]
+    
 }
 
 template <class T>
@@ -299,7 +315,7 @@ int main()
     int neuralLayer[] = { 2, 3, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
-    nn.SetActivationFunction(Sigmoid, SoftMaX);
+    nn.SetActivationFunction(ReLU, SoftMaX);
     nn.SetLossFunction(CrossEntropy);
 
     float inputs[] = { 1.5f, 0.9f };
