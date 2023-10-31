@@ -208,43 +208,61 @@ void NeuralNetwork::BackPropagation(float* org_output)
     }
     else if (activ2 == ReLU) {
         for (i = 0; i < llnc; ++i) {
-            if (lln[i] != 0)
+            if (lln[i] > 0)
                 lln[i] = llncopy[i];
         }
     }
-    /*
-    cout << "\n\n";
-    for (i = 0; i < llnc; ++i)
-        cout << lln[i] << ' ';
-    cout << "\n\n";*/
-
 
     for (lli; lli > 0; --lli) {
         --lli;
-        size_t lenofwei = neurons[lli].GetLength();
-        float** gradCopy = weis[lli].GetGradientsByRef();
-        //bias
-        for (i = 0; i < llnc; ++i)
-            gradCopy[i][lenofwei] += lln[i];
 
+        size_t lenofwei = neurons[lli].GetLength();
+        rsize_t lenofhei = neurons[lli + 1].GetLength();
+        float** gradCopy = weis[lli].GetGradientsByRef();
+        float* llnccc = this->neurons[lli + 1].GetLayerByRef();
+        //bias
+
+        for (i = 0; i < llnc; ++i)
+            gradCopy[i][lenofwei] += llnccc[i];
+
+        //weis
         for (i = 0; i < llnc; ++i) {
             for (size_t j = 0; j < lenofwei; ++j)
-                gradCopy[i][j] += lln[i] * neurons[lli].GetValue(j);
+                gradCopy[i][j] += llnccc[i] * neurons[lli].GetValue(j);
         }
 
-        if (lli == 1)
-            break;
+        //neurons ??? ???? ????? ?????? ??????? ????????
+        float** weiCopy = weis[lli].GetWeightsByRef();
+        float* currNeuronCopy = neurons[lli].GetLayerByRef();
+        float* deriv = new float[lenofwei];
+        neurons[lli].GetLayerByValue(deriv);
 
+        for (rsize_t j = 0; j < lenofwei; ++j) {
+            deriv[j] = 0;
 
+            for (i = 0; i < lenofhei; ++i) {
+                deriv[j] += llnccc[i] * weiCopy[i][j];
+            }
+
+            if (activ2 == Sigmoid) {
+                currNeuronCopy[j] = deriv[j] * currNeuronCopy[j] * (1 - currNeuronCopy[j]);
+            }
+            else if (activ2 == ReLU) {
+                if (currNeuronCopy[j] > 0)
+                    currNeuronCopy[j] = deriv[j];
+            }
+        }
+
+        llnc = lenofwei;
         ++lli;
     }
 
-    /**<
-    weis[0].PrintGradients();*/
+    cout << "Weights\n";
     weis[0].Print(); 
     weis[1].Print();
 
     cout << "Gradients\n";
+    weis[0].PrintGradients();
     weis[1].PrintGradients();
     // lln = dL/dz[last layer]
 }
@@ -330,7 +348,7 @@ template <class T>
 void WeightsFF<T>::Print() {
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j)
-            cout << weights[i][j] << ' ';
+            cout << weights[i][j] << ", ";
         cout << endl;
     }
     cout << endl;
@@ -390,7 +408,7 @@ int main()
     cout << "Loss: " << nn.GetLoss(output) << endl;
     nn.PrintNeuralLayers();
     nn.BackPropagation(output);
-    //    nn.PrintNeuralLayers();
+    nn.PrintNeuralLayers();
 
     //    nn.PrintNeuralLayers();
     //    nn.PrintWeights();
