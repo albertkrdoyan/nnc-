@@ -231,7 +231,9 @@ void NeuralNetwork::BackPropagation(float* org_output)
                 gradCopy[i][j] += llnccc[i] * neurons[lli].GetValue(j);
         }
 
-        //neurons ??? ???? ????? ?????? ??????? ????????
+        //neurons 
+        if (lli == 0)
+            break;
         float** weiCopy = weis[lli].GetWeightsByRef();
         float* currNeuronCopy = neurons[lli].GetLayerByRef();
         float* deriv = new float[lenofwei];
@@ -244,10 +246,10 @@ void NeuralNetwork::BackPropagation(float* org_output)
                 deriv[j] += llnccc[i] * weiCopy[i][j];
             }
 
-            if (activ2 == Sigmoid) {
+            if (activ1 == Sigmoid) {
                 currNeuronCopy[j] = deriv[j] * currNeuronCopy[j] * (1 - currNeuronCopy[j]);
             }
-            else if (activ2 == ReLU) {
+            else if (activ1 == ReLU) {
                 if (currNeuronCopy[j] > 0)
                     currNeuronCopy[j] = deriv[j];
             }
@@ -256,15 +258,17 @@ void NeuralNetwork::BackPropagation(float* org_output)
         llnc = lenofwei;
         ++lli;
     }
-
+    /*
     cout << "Weights\n";
     weis[0].Print(); 
     weis[1].Print();
+    weis[2].Print();
 
     cout << "Gradients\n";
     weis[0].PrintGradients();
     weis[1].PrintGradients();
-    // lln = dL/dz[last layer]
+    weis[2].PrintGradients();
+    */
 }
 
 template <class T>
@@ -346,11 +350,15 @@ void WeightsFF<T>::Create(int input, int output) {
 
 template <class T>
 void WeightsFF<T>::Print() {
+    cout << '[';
     for (int i = 0; i < height; ++i) {
+        cout << '[';
         for (int j = 0; j < width; ++j)
             cout << weights[i][j] << ", ";
+        cout << ']';
         cout << endl;
     }
+    cout << ']';
     cout << endl;
 }
 
@@ -396,7 +404,7 @@ T** WeightsFF<T>::GetGradientsByRef() {
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 2, 3, 2 };
+    int neuralLayer[] = { 2, 5, 6, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
     nn.SetActivationFunction(ReLU, SoftMaX);
