@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <time.h>
 #include <math.h>
-#include <limits>
+#include <iomanip>
 
 using namespace std;
 
@@ -87,7 +87,7 @@ public:
         }
         return err;
     }
-    T GetValue(int index) { return layer[index]; }
+    T GetValue(size_t index) { return layer[index]; }
 };
 
 template <class T>
@@ -124,6 +124,13 @@ public:
         return this->neurons[neural_len - 1].GetError(lf, org_output);
     }
     void BackPropagation(float* org_output);
+    void PrintGradients() {
+        for (size_t i = 0; i < (size_t)neural_len - 1; ++i)
+        {
+            cout << "Gradient[" << i << "]:\n";
+            weis[i].PrintGradients();
+        }
+    }
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
@@ -178,7 +185,7 @@ void NeuralNetwork::SetLossFunction(LossFunction lf) {
 
 void NeuralNetwork::BackPropagation(float* org_output)
 {
-    size_t lli = this->neural_len - 1; // last layer index
+    size_t lli = (size_t) this->neural_len - 1; // last layer index
     size_t llnc = this->neurons[lli].GetLength(); // last later neurons count
     size_t i;
 
@@ -210,6 +217,13 @@ void NeuralNetwork::BackPropagation(float* org_output)
         for (i = 0; i < llnc; ++i) {
             if (lln[i] > 0)
                 lln[i] = llncopy[i];
+            else
+                lln[i] = 0;
+        }
+    }
+    else  if (activ2 == Linear) {
+        for (i = 0; i < llnc; ++i) {
+            lln[i] = llncopy[i];
         }
     }
 
@@ -237,7 +251,6 @@ void NeuralNetwork::BackPropagation(float* org_output)
         float** weiCopy = weis[lli].GetWeightsByRef();
         float* currNeuronCopy = neurons[lli].GetLayerByRef();
         float* deriv = new float[lenofwei];
-        neurons[lli].GetLayerByValue(deriv);
 
         for (rsize_t j = 0; j < lenofwei; ++j) {
             deriv[j] = 0;
@@ -252,23 +265,16 @@ void NeuralNetwork::BackPropagation(float* org_output)
             else if (activ1 == ReLU) {
                 if (currNeuronCopy[j] > 0)
                     currNeuronCopy[j] = deriv[j];
+                else
+                    currNeuronCopy[j] = 0;
             }
+            else if (activ1 == Linear)
+                currNeuronCopy[j] = deriv[j];
         }
 
         llnc = lenofwei;
         ++lli;
     }
-    /*
-    cout << "Weights\n";
-    weis[0].Print(); 
-    weis[1].Print();
-    weis[2].Print();
-
-    cout << "Gradients\n";
-    weis[0].PrintGradients();
-    weis[1].PrintGradients();
-    weis[2].PrintGradients();
-    */
 }
 
 template <class T>
@@ -306,9 +312,13 @@ void NeuralLines1D<T>::GetLayerByValue(T* target)
 template<class T>
 void NeuralLines1D<T>::Print()
 {
-    for (int i = 0; i < this->len; ++i)
-        cout << this->layer[i] << ", ";
-    cout << endl << endl;
+    cout << "[ ";
+    for (size_t j = 0; j < (size_t) len; ++j) {
+        cout << setprecision(10) << this->layer[j];
+        if (j != (size_t) len - 1)
+            cout << ", ";
+    }
+    cout << " ]\n\n";
 }
 
 template<class T>
@@ -352,24 +362,40 @@ template <class T>
 void WeightsFF<T>::Print() {
     cout << '[';
     for (int i = 0; i < height; ++i) {
-        cout << '[';
-        for (int j = 0; j < width; ++j)
-            cout << weights[i][j] << ", ";
-        cout << ']';
-        cout << endl;
+        if (i != 0)
+            cout << ' ';
+        cout << "[ ";
+        for (int j = 0; j < width; ++j) {
+            cout << setprecision(10) << weights[i][j];
+            if (j != width - 1)
+                cout << ", ";
+        }
+        cout << " ]";
+        if (i != height - 1)
+            cout << endl;
     }
     cout << ']';
-    cout << endl;
+    cout << "\n\n";
 }
 
 template <class T>
 void WeightsFF<T>::PrintGradients() {
+    cout << '[';
     for (int i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j)
-            cout << gradient[i][j] << ' ';
-        cout << endl;
+        if (i != 0)
+            cout << ' ';
+        cout << "[ ";
+        for (int j = 0; j < width; ++j) {
+            cout << setprecision(10) << gradient[i][j];
+            if (j != width - 1)
+                cout << ", ";
+        }
+        cout << " ]";
+        if (i != height - 1)
+            cout << endl;
     }
-    cout << endl;
+    cout << ']';
+    cout << "\n\n";
 }
 
 template <class T>
@@ -404,22 +430,22 @@ T** WeightsFF<T>::GetGradientsByRef() {
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 2, 5, 6, 2 };
+    int neuralLayer[] = { 2, 3, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
-    nn.SetActivationFunction(ReLU, SoftMaX);
+    nn.SetActivationFunction(Sigmoid, SoftMaX);
     nn.SetLossFunction(CrossEntropy);
 
     float inputs[] = { 1.5f, 0.9f };
     float output[] = { 1, 0 };
+
     nn.Forward(inputs);
-    cout << "Loss: " << nn.GetLoss(output) << endl;
     nn.PrintNeuralLayers();
     nn.BackPropagation(output);
-    nn.PrintNeuralLayers();
 
-    //    nn.PrintNeuralLayers();
-    //    nn.PrintWeights();
+    nn.PrintNeuralLayers();
+    nn.PrintWeights();
+    nn.PrintGradients();
 
     //    system("pause");
     return 0;
