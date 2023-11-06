@@ -18,7 +18,7 @@ void plot(T* arr, size_t len) {
     wr.close();
 
     system("plot.py");
-    system("pause");
+    //system("pause");
 }
 
 enum ActivationFunction { Linear, ReLU, Sigmoid, SoftMaX };
@@ -38,7 +38,7 @@ string GetActivationFunctionName(ActivationFunction a) {
 }
 
 enum LossFunction { CrossEntropy, SquareError };
-string GetLossFunctionName(LossFunction lf){
+string GetLossFunctionName(LossFunction lf) {
     switch (lf) {
     case CrossEntropy:
         return "Cross Entropy";
@@ -102,10 +102,10 @@ public:
         return (size_t)this->len;
     }
     T GetError(LossFunction lf, T* org_output) {
-        float err = 0;
+        T err = 0;
         if (lf == SquareError) {
             for (int i = 0; i < this->len; ++i)
-                err += powf(org_output[i] - this->layer[i], 2);
+                err += pow(org_output[i] - this->layer[i], 2);
             err /= this->len;
         }
         else if (lf == CrossEntropy) {
@@ -130,6 +130,8 @@ public:
     void NeuralMultiplication(T* layer1, T* layer2);
     void PrintGradients();
     void ResetGradients();
+    int GetHeight() { return height; }
+    int GetWidth() { return width; }
     T** GetWeightsByRef();
     T** GetGradientsByRef();
 };
@@ -137,14 +139,14 @@ public:
 class NeuralNetwork {
 private:
     int neural_len;
-    WeightsFF<float>* weis;
-    NeuralLines1D<float>* neurons;
+    WeightsFF<double>* weis;
+    NeuralLines1D<double>* neurons;
     ActivationFunction activ1, activ2;
     LossFunction lf;
     Optimizer opt;
 public:
     void Create(int* neurons, int length);
-    void Forward(float* input_neuron_layer);
+    void Forward(double* input_neuron_layer);
     void PrintNeuralLayers();
     void PrintWeights();
     void SetActivationFunction(ActivationFunction activation1, ActivationFunction activation2);
@@ -152,10 +154,10 @@ public:
     void SetOptimizer(Optimizer opt) {
         this->opt = opt;
     }
-    float GetLoss(float* org_output) {
+    double GetLoss(double* org_output) {
         return this->neurons[neural_len - 1].GetError(lf, org_output);
     }
-    void BackPropagation(float* org_output);
+    void BackPropagation(double* org_output);
     void PrintGradients() {
         for (size_t i = 0; i < (size_t)neural_len - 1; ++i)
         {
@@ -163,14 +165,15 @@ public:
             weis[i].PrintGradients();
         }
     }
-    void Train(float** inputs, float** outputs, int io_len, int levels, float speed, int batches);
-    void ChangeWeights();
+    void Train(double** inputs, double** outputs, unsigned int io_len, unsigned int levels, double speed, unsigned int batches);
+    void ChangeWeights(double speed, double batch);
+    void PrintResult() { neurons[neural_len - 1].Print(); }
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
     this->neural_len = length;
-    this->weis = new WeightsFF<float>[this->neural_len - 1];
-    this->neurons = new NeuralLines1D<float>[this->neural_len];
+    this->weis = new WeightsFF<double>[this->neural_len - 1];
+    this->neurons = new NeuralLines1D<double>[this->neural_len];
 
     srand((unsigned)time(NULL));
 
@@ -181,7 +184,7 @@ void NeuralNetwork::Create(int* neuron_array, int length) {
     neurons[this->neural_len - 1].Create(neuron_array[this->neural_len - 1]);
 }
 
-void NeuralNetwork::Forward(float* input_neuron_layer) {
+void NeuralNetwork::Forward(double* input_neuron_layer) {
     this->neurons[0].SetLayerByValue(input_neuron_layer);
     int i;
     for (i = 0; i < this->neural_len - 2; ++i) {
@@ -191,7 +194,7 @@ void NeuralNetwork::Forward(float* input_neuron_layer) {
     this->weis[i].NeuralMultiplication(this->neurons[i].GetLayerByRef(), this->neurons[i + 1].GetLayerByRef());
     ++i;
     if (this->activ2 == SoftMaX)
-        SoftMax<float>(this->neurons[i].GetLayerByRef(), (size_t)this->neurons[i].GetLength());
+        SoftMax<double>(this->neurons[i].GetLayerByRef(), (size_t)this->neurons[i].GetLength());
 }
 
 void NeuralNetwork::PrintNeuralLayers() {
@@ -217,14 +220,14 @@ void NeuralNetwork::SetLossFunction(LossFunction lf) {
     this->lf = lf;
 }
 
-void NeuralNetwork::BackPropagation(float* org_output)
+void NeuralNetwork::BackPropagation(double* org_output)
 {
-    size_t lli = (size_t) this->neural_len - 1; // last layer index
+    size_t lli = (size_t)this->neural_len - 1; // last layer index
     size_t llnc = this->neurons[lli].GetLength(); // last later neurons count
     size_t i;
 
-    float* lln = this->neurons[lli].GetLayerByRef();
-    float* llncopy = new float[llnc];
+    double* lln = this->neurons[lli].GetLayerByRef();
+    double* llncopy = new double[llnc];
     this->neurons[lli].GetLayerByValue(llncopy);
 
     if (lf == CrossEntropy) {
@@ -261,13 +264,13 @@ void NeuralNetwork::BackPropagation(float* org_output)
         }
     }
 
-    for (lli; lli > 0; --lli) {
+    for (; lli > 0; --lli) {
         --lli;
 
         size_t lenofwei = neurons[lli].GetLength();
-        rsize_t lenofhei = neurons[lli + 1].GetLength();
-        float** gradCopy = weis[lli].GetGradientsByRef();
-        float* llnccc = this->neurons[lli + 1].GetLayerByRef();
+        size_t lenofhei = neurons[lli + 1].GetLength();
+        double** gradCopy = weis[lli].GetGradientsByRef();
+        double* llnccc = this->neurons[lli + 1].GetLayerByRef();
         //bias
 
         for (i = 0; i < llnc; ++i)
@@ -279,14 +282,14 @@ void NeuralNetwork::BackPropagation(float* org_output)
                 gradCopy[i][j] += llnccc[i] * neurons[lli].GetValue(j);
         }
 
-        //neurons 
+        //neurons
         if (lli == 0)
             break;
-        float** weiCopy = weis[lli].GetWeightsByRef();
-        float* currNeuronCopy = neurons[lli].GetLayerByRef();
-        float* deriv = new float[lenofwei];
+        double** weiCopy = weis[lli].GetWeightsByRef();
+        double* currNeuronCopy = neurons[lli].GetLayerByRef();
+        double* deriv = new double[lenofwei];
 
-        for (rsize_t j = 0; j < lenofwei; ++j) {
+        for (size_t j = 0; j < lenofwei; ++j) {
             deriv[j] = 0;
 
             for (i = 0; i < lenofhei; ++i) {
@@ -312,7 +315,7 @@ void NeuralNetwork::BackPropagation(float* org_output)
 }
 
 template<class T>
-void randomSwapAllElements(T **arr1, T **arr2, int size) {
+void randomSwapAllElements(T** arr1, T** arr2, int size) {
     // Initialize the random number generator with the current time by ChatGPT
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -324,12 +327,14 @@ void randomSwapAllElements(T **arr1, T **arr2, int size) {
     }
 }
 
-void NeuralNetwork::Train(float** inputs, float** outputs, int io_len, int levels, float speed, int batches)
+void NeuralNetwork::Train(double** inputs, double** outputs, unsigned int io_len, unsigned int levels, double speed, unsigned int batches)
 {
-    int batch_count = (int)(io_len / batches) + ((io_len % batches == 0) ? 0 : 1);
-    float *loss = new float[batch_count * levels];
+    unsigned int batch_count = (int)(io_len / batches) + ((io_len % batches == 0) ? 0 : 1);
+    double* loss = new double[batch_count * levels];
 
     for (size_t lvl = 0, limit = 0, current_batch_index = 0; lvl < (size_t)levels; ++lvl) {
+        randomSwapAllElements<double>(inputs, outputs, io_len);
+
         for (size_t batch_counter = 0; batch_counter < (size_t)batch_count; ++batch_counter) {
             limit = ((batch_counter + 1) * batches < io_len) ? (batch_counter + 1) * batches : io_len;
             current_batch_index = batch_count * lvl + batch_counter;
@@ -340,21 +345,28 @@ void NeuralNetwork::Train(float** inputs, float** outputs, int io_len, int level
                 loss[current_batch_index] += GetLoss(outputs[i]);
                 BackPropagation(outputs[i]);
             }
-
-            
-            // gradients changing weigths part
+            ChangeWeights(speed, (double)batches);
         }
-
-        if (lvl != (size_t)(levels - 1))
-            randomSwapAllElements<float>(inputs, outputs, io_len);    
     }
 
-    // print loss function graphics
-    plot<float>(loss, batch_count * levels);
+    plot<double>(loss, batch_count * levels);
 }
 
-void NeuralNetwork::ChangeWeights()
+void NeuralNetwork::ChangeWeights(double speed, double batch)
 {
+    if (opt == GradientDescent) {
+        for (size_t g_i = 0; g_i < (size_t)(neural_len - 1); ++g_i) {
+            double** weiCopi = weis[g_i].GetWeightsByRef();
+            double** gradCopi = weis[g_i].GetGradientsByRef();
+            unsigned int hei = weis[g_i].GetHeight(), wid = weis[g_i].GetWidth();
+            for (size_t h = 0; h < hei; ++h) {
+                for (size_t w = 0; w < wid; ++w) {
+                    weiCopi[h][w] -= gradCopi[h][w] * speed / batch;
+                    gradCopi[h][w] = 0;
+                }
+            }
+        }
+    }
 }
 
 template <class T>
@@ -393,9 +405,9 @@ template<class T>
 void NeuralLines1D<T>::Print()
 {
     cout << "[ ";
-    for (size_t j = 0; j < (size_t) len; ++j) {
+    for (size_t j = 0; j < (size_t)len; ++j) {
         cout << setprecision(10) << this->layer[j];
-        if (j != (size_t) len - 1)
+        if (j != (size_t)len - 1)
             cout << ", ";
     }
     cout << " ]\n\n";
@@ -482,7 +494,7 @@ template <class T>
 void WeightsFF<T>::ResetGradients() {
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j)
-            weights[i][j] = 0;
+            gradient[i][j] = 0;
     }
 }
 
@@ -510,29 +522,41 @@ T** WeightsFF<T>::GetGradientsByRef() {
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 2, 2 };
+    int neuralLayer[] = { 1, 5, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
-    nn.SetActivationFunction(Sigmoid, SoftMaX);
+    nn.SetActivationFunction(ReLU, SoftMaX);
     nn.SetLossFunction(CrossEntropy);
+    nn.SetOptimizer(GradientDescent);
 
-    size_t len = 1000;
-    float** inputs = new float* [len];
-    float** outputs = new float* [len];
-    for (size_t i = 0; i < len; ++i) {
-        inputs[i] = new float[2] {(float)(1 + (float)(i / 100)), 1.0f};
-        outputs[i] = new float[2] {log(float(i + 1)), 1.0f};
+    size_t len = 10000;
+    double** inputs = new double* [len];
+    double** outputs = new double* [len];
+
+    for (int i = 0; i < len; ++i) {
+        double vval = (double)i / len;
+        inputs[i] = new double[1] { vval };
+        
+
+        if(vval < 0.3)
+            outputs[i] = new double[2] { 1, 0 };
+        else
+            outputs[i] = new double[2] { 0, 1 };
     }
 
-    nn.Train(inputs, outputs, (int)len, 5, 1, 32);
+    nn.Train(inputs, outputs, (int)len, 50, 0.03, 64);
 
+    //nn.PrintWeights();
 
-    /*
-    for (size_t i = 0; i < len; ++i) {
-        cout << i <<"\t: LOG(" << inputs[i][0] << ") = " << outputs[i][0] << ".\n";
+    for (int i = 0; i < 10; ++i) {
+        double val = (double)i / 10;
+        double inp[] = { val };
+        nn.Forward(inp);
+        cout << "Org: " << ((val < 0.3) ? "[1, 0]" : "[0, 1]") << " NN: ";
+        nn.PrintResult();
     }
-    */
-
+    
+    //nn.PrintWeights();
     system("pause");
     return 0;
 }
