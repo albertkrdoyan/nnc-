@@ -3,8 +3,23 @@
 #include <time.h>
 #include <math.h>
 #include <iomanip>
+#include <fstream>
 
 using namespace std;
+
+template <class T>
+void plot(T* arr, size_t len) {
+    ofstream wr;
+    wr.open("plot.txt");
+
+    for (size_t i = 0; i < len; ++i)
+        wr << arr[i] << '\n';
+
+    wr.close();
+
+    system("plot.py");
+    system("pause");
+}
 
 enum ActivationFunction { Linear, ReLU, Sigmoid, SoftMaX };
 string GetActivationFunctionName(ActivationFunction a) {
@@ -23,7 +38,7 @@ string GetActivationFunctionName(ActivationFunction a) {
 }
 
 enum LossFunction { CrossEntropy, SquareError };
-string GetLossFunctionName(LossFunction lf) {
+string GetLossFunctionName(LossFunction lf){
     switch (lf) {
     case CrossEntropy:
         return "Cross Entropy";
@@ -34,8 +49,21 @@ string GetLossFunctionName(LossFunction lf) {
     }
 }
 
+enum Optimizer { GradientDescent, ADAM };
+string GetOptimizerName(LossFunction opt) {
+    switch (opt) {
+    case GradientDescent:
+        return "Gradient Descent";
+    case ADAM:
+        return "ADAM";
+    default:
+        return "";
+    }
+}
+
 template <class T>
 void SoftMax(T* arr, size_t len) {
+    // softmax function by ChatGPT
     size_t i;
     T m, sum, constant;
 
@@ -113,6 +141,7 @@ private:
     NeuralLines1D<float>* neurons;
     ActivationFunction activ1, activ2;
     LossFunction lf;
+    Optimizer opt;
 public:
     void Create(int* neurons, int length);
     void Forward(float* input_neuron_layer);
@@ -120,6 +149,9 @@ public:
     void PrintWeights();
     void SetActivationFunction(ActivationFunction activation1, ActivationFunction activation2);
     void SetLossFunction(LossFunction lf);
+    void SetOptimizer(Optimizer opt) {
+        this->opt = opt;
+    }
     float GetLoss(float* org_output) {
         return this->neurons[neural_len - 1].GetError(lf, org_output);
     }
@@ -131,6 +163,7 @@ public:
             weis[i].PrintGradients();
         }
     }
+    void Train(float** inputs, float** outputs, int io_len, int levels, float speed, int batches);
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
@@ -275,6 +308,48 @@ void NeuralNetwork::BackPropagation(float* org_output)
         llnc = lenofwei;
         ++lli;
     }
+}
+
+template<class T>
+void randomSwapAllElements(T **arr1, T **arr2, int size) {
+    // Initialize the random number generator with the current time by ChatGPT
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    for (int i = size - 1; i > 0; i--) {
+        // Generate a random index between 0 and i (inclusive)
+        int j = rand() % (i + 1);
+        swap(arr1[i], arr1[j]);
+        swap(arr2[i], arr2[j]);
+    }
+}
+
+void NeuralNetwork::Train(float** inputs, float** outputs, int io_len, int levels, float speed, int batches)
+{
+    int batch_count = (int)(io_len / batches) + ((io_len % batches == 0) ? 0 : 1);
+    float *loss = new float[batch_count * levels];
+
+    for (size_t lvl = 0, limit = 0, current_batch_index = 0; lvl < (size_t)levels; ++lvl) {
+        for (size_t batch_counter = 0; batch_counter < (size_t)batch_count; ++batch_counter) {
+            limit = ((batch_counter + 1) * batches < io_len) ? (batch_counter + 1) * batches : io_len;
+            current_batch_index = batch_count * lvl + batch_counter;
+            loss[current_batch_index] = 0;
+
+            for (size_t i = batch_counter * batches; i < limit; ++i) {
+                Forward(inputs[i]);
+                loss[current_batch_index] += GetLoss(outputs[i]);
+                BackPropagation(outputs[i]);
+
+
+                // gradients changing weigths part
+            }
+        }
+
+        if (lvl != (size_t)(levels - 1))
+            randomSwapAllElements<float>(inputs, outputs, io_len);    
+    }
+
+    // print loss function graphics
+    plot<float>(loss, batch_count * levels);
 }
 
 template <class T>
@@ -430,23 +505,29 @@ T** WeightsFF<T>::GetGradientsByRef() {
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 2, 3, 2 };
+    int neuralLayer[] = { 2, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
     nn.SetActivationFunction(Sigmoid, SoftMaX);
     nn.SetLossFunction(CrossEntropy);
 
-    float inputs[] = { 1.5f, 0.9f };
-    float output[] = { 1, 0 };
+    size_t len = 1000;
+    float** inputs = new float* [len];
+    float** outputs = new float* [len];
+    for (size_t i = 0; i < len; ++i) {
+        inputs[i] = new float[2] {(float)(1 + (float)(i / 100)), 1.0f};
+        outputs[i] = new float[2] {log(float(i + 1)), 1.0f};
+    }
 
-    nn.Forward(inputs);
-    nn.PrintNeuralLayers();
-    nn.BackPropagation(output);
+    nn.Train(inputs, outputs, (int)len, 5, 1, 32);
 
-    nn.PrintNeuralLayers();
-    nn.PrintWeights();
-    nn.PrintGradients();
 
-    //    system("pause");
+    /*
+    for (size_t i = 0; i < len; ++i) {
+        cout << i <<"\t: LOG(" << inputs[i][0] << ") = " << outputs[i][0] << ".\n";
+    }
+    */
+
+    system("pause");
     return 0;
 }
