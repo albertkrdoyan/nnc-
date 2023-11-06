@@ -164,6 +164,7 @@ public:
         }
     }
     void Train(float** inputs, float** outputs, int io_len, int levels, float speed, int batches);
+    void ChangeWeights();
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
@@ -338,10 +339,10 @@ void NeuralNetwork::Train(float** inputs, float** outputs, int io_len, int level
                 Forward(inputs[i]);
                 loss[current_batch_index] += GetLoss(outputs[i]);
                 BackPropagation(outputs[i]);
-
-
-                // gradients changing weigths part
             }
+
+            
+            // gradients changing weigths part
         }
 
         if (lvl != (size_t)(levels - 1))
@@ -350,6 +351,10 @@ void NeuralNetwork::Train(float** inputs, float** outputs, int io_len, int level
 
     // print loss function graphics
     plot<float>(loss, batch_count * levels);
+}
+
+void NeuralNetwork::ChangeWeights()
+{
 }
 
 template <class T>
