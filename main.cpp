@@ -167,7 +167,7 @@ public:
     }
     void Train(double** inputs, double** outputs, unsigned int io_len, unsigned int levels, double speed, unsigned int batches);
     void ChangeWeights(double speed, double batch);
-    void PrintResult() { neurons[neural_len - 1].Print(); }
+    void PrintResult(double* dat, bool print) { neurons[neural_len - 1].GetLayerByValue(dat);  if(print) neurons[neural_len - 1].Print();}
 };
 
 void NeuralNetwork::Create(int* neuron_array, int length) {
@@ -522,14 +522,14 @@ T** WeightsFF<T>::GetGradientsByRef() {
 int main()
 {
     NeuralNetwork nn;
-    int neuralLayer[] = { 1, 5, 2 };
+    int neuralLayer[] = { 1, 3, 3, 2 };
 
     nn.Create(neuralLayer, sizeof(neuralLayer) / sizeof(neuralLayer[0]));
     nn.SetActivationFunction(ReLU, SoftMaX);
     nn.SetLossFunction(CrossEntropy);
     nn.SetOptimizer(GradientDescent);
 
-    size_t len = 10000;
+    size_t len = 1000;
     double** inputs = new double* [len];
     double** outputs = new double* [len];
 
@@ -538,25 +538,29 @@ int main()
         inputs[i] = new double[1] { vval };
         
 
-        if(vval < 0.3)
+        if(vval < 0.31)
             outputs[i] = new double[2] { 1, 0 };
         else
             outputs[i] = new double[2] { 0, 1 };
     }
 
-    nn.Train(inputs, outputs, (int)len, 50, 0.03, 64);
+    nn.Train(inputs, outputs, (int)len, 50, 0.03, 8);
 
     //nn.PrintWeights();
 
-    for (int i = 0; i < 10; ++i) {
-        double val = (double)i / 10;
+    len = 100;
+    double *errf = new double[len];
+    for (int i = 0; i < len; ++i) {
+        double val = (double)i / len;
         double inp[] = { val };
         nn.Forward(inp);
-        cout << "Org: " << ((val < 0.3) ? "[1, 0]" : "[0, 1]") << " NN: ";
-        nn.PrintResult();
+        //cout << "Org: " << ((val < 0.3) ? "[1, 0]" : "[0, 1]") << " NN: ";
+        double *d = new double[2];
+        nn.PrintResult(d, false);
+        errf[i] = d[0] * 1;
     }
     
-    //nn.PrintWeights();
-    system("pause");
+    plot<double>(errf, len);
+
     return 0;
 }
