@@ -633,7 +633,6 @@ int main11() {
 
 int main()
 {
-<<<<<<< HEAD
     NeuralNetwork nn{};
 
     const int tr_len = 60000, tst_len = 10000, img_len = 28 * 28;
@@ -646,8 +645,6 @@ int main()
 
     cout << "DOWNLOADING..\n";
     const clock_t begin_time = clock();
-    // ReadFrom(tr_path, tr_len, img_len, tr_img, tr_img_info);
-    // ReadFrom(tst_path, tst_len, img_len, tst_img, tst_img_info);
     double** tr_img = new double* [tr_len] {};
     double** tr_img_info = new double* [tr_len] {};
     double** tst_img = new double* [tst_len] {};
@@ -662,10 +659,10 @@ int main()
         tst_img_info[i] = new double[10] {0};
     }
 
-    LoadX("C:\\Users\\alber\\Desktop\\GitHub\\NeuralNetworkCPP\\x64\\Debug\\Digits2\\trainX.txt", tr_len, img_len, tr_img);
+    /*LoadX("C:\\Users\\alber\\Desktop\\GitHub\\NeuralNetworkCPP\\x64\\Debug\\Digits2\\trainX.txt", tr_len, img_len, tr_img);
     LoadY("C:\\Users\\alber\\Desktop\\GitHub\\NeuralNetworkCPP\\x64\\Debug\\Digits2\\trainY.txt", tr_len, 10, tr_img_info);
     LoadX("C:\\Users\\alber\\Desktop\\GitHub\\NeuralNetworkCPP\\x64\\Debug\\Digits2\\testX.txt", tst_len, img_len, tst_img);
-    LoadY("C:\\Users\\alber\\Desktop\\GitHub\\NeuralNetworkCPP\\x64\\Debug\\Digits2\\testY.txt", tst_len, 10, tst_img_info);
+    LoadY("C:\\Users\\alber\\Desktop\\GitHub\\NeuralNetworkCPP\\x64\\Debug\\Digits2\\testY.txt", tst_len, 10, tst_img_info);*/
 
     cout << "End of DOWNLOADING.. Time: " << float(clock() - begin_time) / CLOCKS_PER_SEC << '\n';
 
@@ -673,8 +670,6 @@ int main()
     //nn.Train(tr_img, tr_img_info, tr_len, 5, 0.03, 32); // (28*28)x128x10 - 20 / 0.03 / 32 - 95.04%
     cout << "End of training... Time: \n";
 
- //   nn.SaveWeights();
-    //nn.load();
     /*
     double* d = new double[10];
     double count = 0, summ = 0;
@@ -704,9 +699,11 @@ int main()
     double* out = new double[2] {1, 0};
 
     nn.Forward(inp);
-    nn.BackPropagation(out);
     delete[] inp, out;
 
+    nn.PrintNeuralLayers();
+
+    nn.BackPropagation(out);
     nn.SaveWeights();
     nn.PrintWeights();
     nn.PrintNeuralLayers();

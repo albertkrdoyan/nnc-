@@ -1,16 +1,5 @@
 {
   "Version": 1,
-<<<<<<< HEAD
-  "WorkspaceRootPath": "C:\\Users\\alber\\source\\repos\\Neural Network\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|C:\\Users\\alber\\source\\repos\\Neural Network\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|C:\\Users\\alber\\source\\repos\\Neural Network\\addit.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|solutionrelative:addit.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-=======
   "WorkspaceRootPath": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\",
   "Documents": [
     {
@@ -18,9 +7,8 @@
       "RelativeMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|C:\\Users\\User\\source\\repos\\NN\\nnc-\\experiments.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|solutionrelative:experiments.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
->>>>>>> fa56b90fe818cac32a19da8c64a148496441f485
+      "AbsoluteMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|C:\\Users\\User\\source\\repos\\NN\\nnc-\\addit.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{15DBBA7C-D42E-479E-AA45-C7FFB90FD79B}|Neural Network.vcxproj|solutionrelative:addit.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -33,48 +21,33 @@
           "SelectedChildIndex": 1,
           "Children": [
             {
-<<<<<<< HEAD
               "$type": "Bookmark",
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-=======
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "experiments.h",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\experiments.h",
-              "RelativeDocumentMoniker": "experiments.h",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\experiments.h",
-              "RelativeToolTip": "experiments.h",
-              "ViewState": "AgIAAGAAAAAAAAAAAAAAAEkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2024-12-27T17:20:52.076Z",
-              "EditorCaption": ""
->>>>>>> fa56b90fe818cac32a19da8c64a148496441f485
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "main.cpp",
-<<<<<<< HEAD
-              "DocumentMoniker": "C:\\Users\\alber\\source\\repos\\Neural Network\\main.cpp",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\main.cpp",
               "RelativeDocumentMoniker": "main.cpp",
-              "ToolTip": "C:\\Users\\alber\\source\\repos\\Neural Network\\main.cpp",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\main.cpp",
               "RelativeToolTip": "main.cpp",
-              "ViewState": "AgIAALUCAAAA9P////8dwMICAAAWAAAAAAAAAA==",
+              "ViewState": "AgIAAJ8CAAAAAAAAAAAIwMECAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2023-10-23T17:02:43.915Z",
+              "WhenOpened": "2025-01-06T13:15:04.742Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "addit.cpp",
-              "DocumentMoniker": "C:\\Users\\alber\\source\\repos\\Neural Network\\addit.cpp",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\addit.cpp",
               "RelativeDocumentMoniker": "addit.cpp",
-              "ToolTip": "C:\\Users\\alber\\source\\repos\\Neural Network\\addit.cpp",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\addit.cpp",
               "RelativeToolTip": "addit.cpp",
               "ViewState": "AgIAADUAAAAAAAAAAAAIwE8AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-01-03T19:00:21.739Z"
+              "WhenOpened": "2025-01-06T13:15:05.035Z"
             }
           ]
         },
@@ -93,16 +66,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-=======
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\main.cpp",
-              "RelativeDocumentMoniker": "main.cpp",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\NN\\nnc-\\main.cpp",
-              "RelativeToolTip": "main.cpp",
-              "ViewState": "AgIAANgAAAAAAAAAAAAowLkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2024-12-27T17:20:52.488Z",
-              "EditorCaption": ""
->>>>>>> fa56b90fe818cac32a19da8c64a148496441f485
             }
           ]
         }
