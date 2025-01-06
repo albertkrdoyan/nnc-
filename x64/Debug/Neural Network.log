@@ -1,2 +1,3 @@
 ﻿  main.cpp
+C:\Users\alber\source\repos\Neural Network\main.cpp(669,23): warning C4101: 'summ': unreferenced local variable
   Neural Network.vcxproj -> C:\Users\alber\source\repos\Neural Network\x64\Debug\Neural Network.exe
